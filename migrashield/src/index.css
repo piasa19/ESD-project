@@ -1,0 +1,84 @@
+@import url('https://fonts.googleapis.com/css2?family=Syne:wght@400;500;600;700;800&family=Inter:wght@300;400;500;600&display=swap');
+
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --purple-50: #f5f3ff;
+  --purple-100: #ede9fe;
+  --purple-400: #a78bfa;
+  --purple-500: #8b5cf6;
+  --purple-600: #7c3aed;
+  --purple-700: #6d28d9;
+  --purple-900: #2e1065;
+  --pink-400: #f472b6;
+  --pink-500: #ec4899;
+  --pink-600: #db2777;
+  --bg: #09050f;
+  --bg2: #110b1e;
+  --bg3: #1a1030;
+  --surface: rgba(255,255,255,0.04);
+  --surface-hover: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.08);
+  --border-hover: rgba(139,92,246,0.5);
+  --text: #f1e8ff;
+  --text-muted: rgba(241,232,255,0.55);
+  --text-dim: rgba(241,232,255,0.3);
+  --grad: linear-gradient(135deg, var(--purple-600), var(--pink-500));
+  --grad-text: linear-gradient(90deg, #c084fc, #f472b6);
+  --font-display: 'Syne', sans-serif;
+  --font-body: 'Inter', sans-serif;
+  --radius: 12px;
+  --radius-lg: 20px;
+  --radius-xl: 32px;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  font-family: var(--font-body);
+  background: var(--bg);
+  color: var(--text);
+  overflow-x: hidden;
+  line-height: 1.7;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,h2,h3,h4 { font-family: var(--font-display); line-height: 1.15; }
+
+.grad-text {
+  background: var(--grad-text);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.section { padding: 6rem 0; position: relative; }
+.section-inner { max-width: 1160px; margin: 0 auto; padding: 0 1.5rem; }
+
+.section-tag {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-family: var(--font-body); font-size: 11px; font-weight: 600;
+  letter-spacing: 0.12em; text-transform: uppercase;
+  color: var(--purple-400);
+  background: rgba(139,92,246,0.12);
+  border: 1px solid rgba(139,92,246,0.25);
+  padding: 6px 14px; border-radius: 100px; margin-bottom: 1.25rem;
+}
+
+.section-title {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 700; margin-bottom: 1rem;
+}
+
+.section-sub {
+  font-size: 1.05rem; color: var(--text-muted);
+  max-width: 600px; line-height: 1.75;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: var(--bg2); }
+::-webkit-scrollbar-thumb { background: var(--purple-700); border-radius: 3px; }
+
+/* Selection */
+::selection { background: rgba(139,92,246,0.35); color: #fff; }

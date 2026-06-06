@@ -1,0 +1,14 @@
+/* Reset & global layout utilities */
+* { box-sizing: border-box; }
+
+/* Smooth image rendering */
+img { display: block; max-width: 100%; }
+
+/* Focus visible */
+:focus-visible {
+  outline: 2px solid rgba(139, 92, 246, 0.6);
+  outline-offset: 2px;
+}
+
+/* Button reset */
+button { font-family: var(--font-body); }
