@@ -8,6 +8,7 @@ const links = [
   { label: "Market", href: "#market" },
   { label: "Impact", href: "#impact" },
   { label: "Team", href: "#team" },
+  { label: "Contact", href: "#contact" },
 ];
 
 export default function Navbar() {

@@ -1,6 +1,6 @@
 import { motion } from "framer-motion";
 import { useInView } from "react-intersection-observer";
-import CountUp from "react-countup";
+import { useEffect, useRef, useState } from "react";
 import { TrendingUp, Users, FileCheck, AlertOctagon, Landmark, HandCoins } from "lucide-react";
 
 const sdgCards = [
@@ -32,6 +32,60 @@ const revenue = [
   { label: "CSR Sponsorship", value: 8, color: "#60a5fa" },
 ];
 
+// Pre-compute donut arc geometry — no mutation during render
+const total = revenue.reduce((s, r) => s + r.value, 0);
+const circ = 2 * Math.PI * 60;
+const revenueArcs = revenue.map((r, i) => {
+  const cumulative = revenue.slice(0, i).reduce((s, x) => s + x.value, 0);
+  return {
+    ...r,
+    dash: (r.value / total) * circ,
+    offset: -(cumulative / total) * circ - circ / 4,
+  };
+});
+
+// Plain useEffect counter — no library needed
+function useAnimatedCount(end, duration = 2500, active = false) {
+  const [count, setCount] = useState(0);
+  const started = useRef(false);
+  useEffect(() => {
+    if (!active || started.current) return;
+    started.current = true;
+    const startTime = performance.now();
+    const tick = (now) => {
+      const elapsed = now - startTime;
+      const progress = Math.min(elapsed / duration, 1);
+      // ease-out-expo
+      const eased = progress === 1 ? 1 : 1 - Math.pow(2, -10 * progress);
+      setCount(Math.floor(eased * end));
+      if (progress < 1) requestAnimationFrame(tick);
+      else setCount(end);
+    };
+    requestAnimationFrame(tick);
+  }, [active, end, duration]);
+  return count;
+}
+
+function CountUpStat({ value, suffix, label, icon: Icon, inView, index }) {
+  const count = useAnimatedCount(value, 2500, inView);
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 20 }}
+      animate={inView ? { opacity: 1, y: 0 } : {}}
+      transition={{ duration: 0.6, delay: index * 0.1 }}
+    >
+      <Icon size={24} color="#a78bfa" style={{ marginBottom: 8 }} />
+      <div
+        style={{ fontFamily: "var(--font-display)", fontSize: "2.2rem", fontWeight: 800, lineHeight: 1 }}
+        className="grad-text"
+      >
+        {count.toLocaleString()}{suffix}
+      </div>
+      <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: 6 }}>{label}</div>
+    </motion.div>
+  );
+}
+
 function BudgetBar({ label, value, max, color, index, inView }) {
   return (
     <div style={{ marginBottom: "1rem" }}>
@@ -55,9 +109,6 @@ export default function Impact() {
   const [ref, inView] = useInView({ triggerOnce: true, threshold: 0.1 });
   const [finRef, finInView] = useInView({ triggerOnce: true, threshold: 0.1 });
   const [impRef, impInView] = useInView({ triggerOnce: true, threshold: 0.1 });
-
-  const total = revenue.reduce((s, r) => s + r.value, 0);
-  let cumulative = 0;
 
   return (
     <section id="impact" className="section">
@@ -126,18 +177,8 @@ export default function Impact() {
             Proving Technology Can Be A Force For Global Labor Justice
           </h3>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit,minmax(150px,1fr))", gap: "2rem" }}>
-            {impact.map(({ value, suffix, label, icon: Icon }, i) => (
-              <motion.div key={label}
-                initial={{ opacity: 0, y: 20 }}
-                animate={impInView ? { opacity: 1, y: 0 } : {}}
-                transition={{ duration: 0.6, delay: i * 0.1 }}
-              >
-                <Icon size={24} color="#a78bfa" style={{ marginBottom: 8 }} />
-                <div style={{ fontFamily: "var(--font-display)", fontSize: "2.2rem", fontWeight: 800, lineHeight: 1 }} className="grad-text">
-                  {impInView ? <CountUp end={value} duration={2.5} separator="," suffix={suffix} /> : "0"}
-                </div>
-                <div style={{ color: "var(--text-muted)", fontSize: "0.85rem", marginTop: 6 }}>{label}</div>
-              </motion.div>
+            {impact.map(({ value, suffix, label, icon }, i) => (
+              <CountUpStat key={label} value={value} suffix={suffix} label={label} icon={icon} inView={impInView} index={i} />
             ))}
           </div>
         </motion.div>
@@ -175,27 +216,19 @@ export default function Impact() {
             <div style={{ fontFamily: "var(--font-display)", fontWeight: 700, fontSize: "1.1rem", marginBottom: "0.25rem" }}>Year 1 Revenue</div>
             <div style={{ color: "#34d399", fontSize: "0.85rem", marginBottom: "1.75rem" }}>Total: ₹30L | Profit: ₹10L</div>
 
-            {/* SVG Donut */}
             <div style={{ display: "flex", justifyContent: "center", marginBottom: "1.5rem" }}>
               <svg width="160" height="160" viewBox="0 0 160 160">
                 <circle cx="80" cy="80" r="60" fill="none" stroke="rgba(255,255,255,0.05)" strokeWidth="28" />
-                {revenue.map((r, i) => {
-                  const pct = r.value / total;
-                  const circ = 2 * Math.PI * 60;
-                  const dash = pct * circ;
-                  const offset = -(cumulative / total) * circ - circ / 4;
-                  cumulative += r.value;
-                  return (
-                    <motion.circle key={r.label} cx="80" cy="80" r="60"
-                      fill="none" stroke={r.color} strokeWidth="28"
-                      strokeDasharray={`${dash} ${circ - dash}`}
-                      strokeDashoffset={offset}
-                      initial={{ opacity: 0 }}
-                      animate={finInView ? { opacity: 1 } : { opacity: 0 }}
-                      transition={{ duration: 0.8, delay: i * 0.2 }}
-                    />
-                  );
-                })}
+                {revenueArcs.map((r, i) => (
+                  <motion.circle key={r.label} cx="80" cy="80" r="60"
+                    fill="none" stroke={r.color} strokeWidth="28"
+                    strokeDasharray={`${r.dash} ${circ - r.dash}`}
+                    strokeDashoffset={r.offset}
+                    initial={{ opacity: 0 }}
+                    animate={finInView ? { opacity: 1 } : { opacity: 0 }}
+                    transition={{ duration: 0.8, delay: i * 0.2 }}
+                  />
+                ))}
                 <text x="80" y="76" textAnchor="middle" fill="#f1e8ff" fontFamily="Syne" fontSize="14" fontWeight="700">₹30L</text>
                 <text x="80" y="94" textAnchor="middle" fill="rgba(241,232,255,0.5)" fontSize="10">Revenue</text>
               </svg>
